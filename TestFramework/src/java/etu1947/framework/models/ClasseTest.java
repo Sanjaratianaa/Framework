@@ -6,6 +6,7 @@ package etu1947.framework.models;
 
 import etu1947.framework.annotations.ModelTable;
 import etu1947.framework.annotations.Url;
+import etu1947.framework.utile.ModelView;
 
 /**
  *
@@ -15,7 +16,7 @@ import etu1947.framework.annotations.Url;
 public class ClasseTest {
     
     @Url(value = "getThis")
-    public String getMot(){
-        return "Coucouu";
+    public ModelView getMot(){
+        return new ModelView("test.jsp");
     }
 }
