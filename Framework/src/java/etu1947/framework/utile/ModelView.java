@@ -1,28 +1,30 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package etu1947.framework.utile;
 
-/**
- *
- * @author layah
- */
+import java.util.HashMap;
+
 public class ModelView {
     String vue;
-    
-    // getters
+    HashMap<String,Object> data = new HashMap<>();
+
+    public void setVue(String v){
+        this.vue = v;
+    }
+    public void setData(HashMap<String,Object> datas){
+        this.data = datas;
+    }
+
     public String getVue(){
-        return this.vue;
+        return vue;
     }
-    
-    // setters
-    public void setVue(String vue){
-        this.vue = vue;
+    public HashMap<String,Object> getData(){
+        return data;
     }
-    
-    public ModelView(String view){
-        this.setVue(view);
+
+    public ModelView(String vue){
+        this.setVue(vue);
     }
-    
+
+    public void addItem(String nom, Object objet){
+        this.getData().put(nom, objet);
+    }
 }

@@ -34,6 +34,14 @@ pwd
 cd -- "$yourFramework"
 cp "$yourFramework/web/WEB-INF/web.xml" "$yourFramework/WEB-INF"
 
-jar -cf YourFramework.war "WEB-INF" && cp YourFramework.war "$tomcat/webapps"
+cd -- "$yourFramework"
+
+mkdir -p Framework
+cp -r WEB-INF Framework
+cp web/test.jsp Framework
+
+cd Framework
+
+jar -cf YourFramework.war . && cp YourFramework.war "$tomcat/webapps"
 
 
