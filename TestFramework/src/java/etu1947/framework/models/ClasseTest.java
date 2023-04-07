@@ -4,6 +4,8 @@
  */
 package etu1947.framework.models;
 
+import javax.print.attribute.standard.MediaPrintableArea;
+
 import etu1947.framework.annotations.ModelTable;
 import etu1947.framework.annotations.Url;
 import etu1947.framework.utile.ModelView;
@@ -17,6 +19,12 @@ public class ClasseTest {
     
     @Url(value = "getThis")
     public ModelView getMot(){
-        return new ModelView("test.jsp");
+        ModelView model = new ModelView("test.jsp");
+        String[] listes = new String[3];
+        listes[0] = "Poire";
+        listes[1] = "Pomme";
+        listes[2] = "Orange";
+        model.addItem("fruits", listes);
+        return model;
     }
 }

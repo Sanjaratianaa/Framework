@@ -29,7 +29,7 @@ public class Mapping {
     }
     
     public Mapping(String nom, String method){
-        this.setclassName(nom);
-        this.setMethod(method);
+        this.className = nom;
+        this.Method = method;
     }
 }
