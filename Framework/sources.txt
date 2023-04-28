@@ -1,6 +1,11 @@
+./src/java/etu1947/framework/generic/DaoHelper.java
+./src/java/etu1947/framework/generic/Connexion.java
+./src/java/etu1947/framework/generic/GenericDao.java
 ./src/java/etu1947/framework/mapping/Mapping.java
 ./src/java/etu1947/framework/utile/FonctionsUtile.java
 ./src/java/etu1947/framework/utile/ModelView.java
 ./src/java/etu1947/framework/annotations/Url.java
+./src/java/etu1947/framework/annotations/AnnotationTable.java
 ./src/java/etu1947/framework/annotations/ModelTable.java
+./src/java/etu1947/framework/annotations/AnnotationColumn.java
 ./src/java/etu1947/framework/servlet/FrontServlet.java

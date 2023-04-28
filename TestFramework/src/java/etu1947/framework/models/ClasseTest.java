@@ -4,8 +4,6 @@
  */
 package etu1947.framework.models;
 
-import javax.print.attribute.standard.MediaPrintableArea;
-
 import etu1947.framework.annotations.ModelTable;
 import etu1947.framework.annotations.Url;
 import etu1947.framework.utile.ModelView;
