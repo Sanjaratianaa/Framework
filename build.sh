@@ -38,7 +38,7 @@ cd -- "$yourFramework"
 
 mkdir -p Framework
 cp -r WEB-INF Framework
-cp web/test.jsp Framework
+cp Pages/* Framework
 
 cd Framework
 

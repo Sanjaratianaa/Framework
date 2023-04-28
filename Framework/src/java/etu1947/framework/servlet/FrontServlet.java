@@ -13,6 +13,8 @@ import etu1947.framework.mapping.Mapping;
 import etu1947.framework.utile.FonctionsUtile;
 import etu1947.framework.utile.ModelView;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -73,7 +75,6 @@ public class FrontServlet extends HttpServlet {
             out.println("<body>");
             out.println("<h3>URL : " + request.getRequestURL() +"</h3>");
             out.println("<h3>URI : " + request.getRequestURI() + "</h3>");
-            out.println("<h3>INFO : " + request.getPathInfo() + "</h3>");
             out.println("<p>Info: " + request.getPathInfo() +"?"+request.getQueryString()+ "</p>");
 
             
@@ -94,8 +95,8 @@ public class FrontServlet extends HttpServlet {
                     out.println("<li> this class has the url  >>  " + classe.getName() + "</li>");
                 }
                 out.println("</ul>");
-                out.print(this.getUrls());
             }
+
                 String[] all = request.getRequestURI().split("/");
                 out.print("<p>"+this.getUrls().get(all[all.length-1]).getMethod()+"</p>");
 
@@ -123,28 +124,35 @@ public class FrontServlet extends HttpServlet {
                 Mapping mapping = this.getUrls().get(all[all.length-1]);
                 out.println("<p>"+mapping.getclassName()+" et "+mapping.getMethod()+"</p>");
                 Class classe = Class.forName(mapping.getclassName());
-                out.println("<p> dfghjkl</p>");
                 Object o = classe.newInstance();
                 out.println("<p> Non "+o+"</p>");
                 Method[] methodes = o.getClass().getDeclaredMethods();
                 for(Method methode: methodes){
-                    out.println("<p> Nonnnnnnn "+methode.getName()+" anfffffff "+methode.getReturnType()+"</p>");
+                    // out.println("<p> Nonnnnnnn "+methode.getName()+" anfffffff "+methode.getReturnType()+"</p>");
                     if(methode.getReturnType().toString().contains("ModelView")){
-                        out.println("<p> ModelView ioooo</p>");
+                        out.println("ModelViewwww: "+methode.getName()+" and "+mapping.getMethod());
+                        
+                        out.println("ambany: "+o.getClass().getDeclaredMethod(mapping.getMethod()));
+                        
+                        insertion(o, request,out);
+
                         ModelView objet = (ModelView)o.getClass().getDeclaredMethod(mapping.getMethod()).invoke(o);
+                        out.println(objet);
+                        
+                        out.println(objet.getData());
 
                         PourLesSetAttributes(request, objet);
-                        out.println(objet.getVue());
-
-                        request.getRequestDispatcher(objet.getVue()).forward(request,response);
+                        out.println("Vue: "+objet.getVue());
+                        
+                        // if(objet.getVue().equals("test1.jsp") == false){
+                            request.getRequestDispatcher(objet.getVue()).forward(request,response);
+                        // }
 
                     }else{
-                        out.println("<p>Nonnnnn</p>");
+                        // out.println("<p>Nonnnnn tsy mety</p>");
                     }
                 }
-                
-                
-
+               
             } catch (Exception e) {
                 e.printStackTrace();
             }    
@@ -162,6 +170,48 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
+    public Vector<Boolean> PourLesFormulaires(HttpServletRequest request) throws Exception {
+        Vector<Boolean> all = new Vector<>();
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while(parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            String paramValue = request.getParameter(paramName);
+            if(paramValue != null){
+                all.add(true);
+            }else{
+                all.add(false);
+            }
+        }
+        return all;
+    }
+
+    public void insertion(Object objet, HttpServletRequest request, PrintWriter out) throws Exception {
+        out.println("miditra insertion");
+        try {
+            Field[] fields = objet.getClass().getDeclaredFields();
+            for (int i = 0; i < fields.length; i++) {
+                fields[i].setAccessible(true);
+                if(fields[i].getType().getName().equals("int")){
+                    fields[i].set(objet, Integer.parseInt(request.getParameter(fields[i].getName())));
+                }else if(fields[i].getType().getName().equals("double")){
+                    fields[i].set(objet, Double.parseDouble(request.getParameter(fields[i].getName())));
+                }else{
+                    fields[i].set(objet, request.getParameter(fields[i].getName()));
+                }
+            }
+
+            out.println();
+            out.println();
+
+            for (int i = 0; i < fields.length; i++) {
+                out.println(fields[i].getName()+" : "+objet.getClass().getDeclaredMethod("get"+fields[i].getName()).invoke(objet));
+            }
+
+        } catch (Exception e) {
+            out.println(e.getLocalizedMessage());
+        }
+        
+    }
 
 }
 
