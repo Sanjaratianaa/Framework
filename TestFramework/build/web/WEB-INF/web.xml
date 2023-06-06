@@ -6,11 +6,19 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>FrontServlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
             30
         </session-timeout>
     </session-config>
+
+    <context-param>
+    <description>Store uploaded file here</description>
+    <param-name>file-upload</param-name>
+    <param-value>
+      home/layah/Documents/Semestre_4/images
+    </param-value>
+</context-param>
 </web-app>
