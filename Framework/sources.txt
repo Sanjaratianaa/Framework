@@ -2,8 +2,10 @@
 ./src/java/etu1947/framework/generic/Connexion.java
 ./src/java/etu1947/framework/generic/GenericDao.java
 ./src/java/etu1947/framework/mapping/Mapping.java
+./src/java/etu1947/framework/utile/Fichiers.java
 ./src/java/etu1947/framework/utile/FonctionsUtile.java
 ./src/java/etu1947/framework/utile/ModelView.java
+./src/java/etu1947/framework/annotations/ParameterNames.java
 ./src/java/etu1947/framework/annotations/Url.java
 ./src/java/etu1947/framework/annotations/AnnotationTable.java
 ./src/java/etu1947/framework/annotations/ModelTable.java

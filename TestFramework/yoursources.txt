@@ -1,2 +1,3 @@
 ./src/java/etu1947/framework/models/Personne.java
 ./src/java/etu1947/framework/models/ClasseTest.java
+./src/java/etu1947/framework/models/Image.java

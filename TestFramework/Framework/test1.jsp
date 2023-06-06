@@ -2,6 +2,7 @@
 
 <%
     Vector<String> listes = (Vector<String>)request.getAttribute("donnees");
+    int[] numbers = (int[])request.getAttribute("numbers");
 %>
 
 <!DOCTYPE html>
@@ -19,8 +20,18 @@
             <li>Nom: <% out.println(listes.get(1)); %></li>
             <li>Prenoms: <% out.println(listes.get(2)); %></li>
             <li>Age: <% out.println(listes.get(3)); %></li>
+            <li>Autres Somme: <% out.println(listes.get(4)); %></li>
         <% } %>
     </ul>
+
+    <% if(numbers != null) { %>
+        <p>Les nombres caches sont: </p>
+        <ul>
+            <% for(int i=0; i<numbers.length; i++){ %>
+                <li><% out.println(numbers[i]); %></li>
+            <% } %>
+        </ul>
+    <% } %>
 
     <p><a href="http://localhost:8080/YourFramework/getThis">Retour</a></p>
 

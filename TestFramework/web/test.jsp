@@ -15,16 +15,20 @@
     <p>Tonga zaaaaaa</p>
     <p>Les listes des fruits: </p>
     <ul>
-        <% for(int i=0; i<listes.length; i++) {%>
+        <!-- <% for(int i=0; i<listes.length; i++) {%>
             <li><% out.println(listes[i]); %></li>
-        <% } %>
+        <% } %> -->
     </ul>
 
     <form method="post" action="InsertionPersonne">
         <input type="hidden" name="idPersonne" value="0">
-        <p>Nom: <input type="text" name="Nom"></p>
+        <p>Nom: <input type="text" name="Nom" value="coucou"></p>
         <p>Prenom: <input type="text" name="Prenom"></p>
         <p>Age: <input type="text" name="Age"></p>
+
+        <p>Premier Nombre: <input type="number" name="un"></p>
+        <p>Second Nombre: <input type="number" name="deux"></p>
+
         <input type="submit" value="valider">
     </form>
 

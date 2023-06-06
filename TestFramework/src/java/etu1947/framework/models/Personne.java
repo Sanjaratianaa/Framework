@@ -8,7 +8,9 @@ import java.lang.reflect.Field;
 import java.util.Vector;
 
 import etu1947.framework.annotations.ModelTable;
+import etu1947.framework.annotations.ParameterNames;
 import etu1947.framework.annotations.Url;
+import etu1947.framework.utile.Fichiers;
 import etu1947.framework.utile.ModelView;
 
 /**
@@ -53,7 +55,7 @@ public class Personne{
     }
 
     @Url(value="InsertionPersonne")
-    public ModelView Insertion(){
+    public ModelView Insertion(@ParameterNames({"un","deux","numbers[]"}) double un,double deux, int[] numbers){
         ModelView model = new ModelView("test1.jsp");
         Vector<String> datas = new Vector<>();
 
@@ -63,12 +65,23 @@ public class Personne{
             for (int i = 0; i < fields.length; i++) {
                 datas.add(this.getClass().getDeclaredMethod("get"+fields[i].getName()).invoke(this).toString());
             }
+            double res = un+deux;
+            datas.add(""+res);
             model.addItem("donnees", datas);
+            model.addItem("numbers", numbers);
 
         } catch (Exception e) {
             model.addItem("exeption", e);
         }
         
+        return model;
+    }
+
+    @Url(value = "getImage")
+    public ModelView affichageImage() {
+    // public ModelView affichageImage(@ParameterNames({"image"}) Fichiers image) {
+        ModelView model = new ModelView("affichageTest.jsp");
+        // Vector<String> datas = new Vector<>();
         return model;
     }
     

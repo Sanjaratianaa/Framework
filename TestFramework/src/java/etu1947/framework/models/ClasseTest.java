@@ -25,4 +25,10 @@ public class ClasseTest {
         model.addItem("fruits", listes);
         return model;
     }
+
+    @Url(value = "insertImage")
+    public ModelView insertImage(){
+        ModelView model = new ModelView("imageTest.jsp");
+        return model;
+    }
 }
