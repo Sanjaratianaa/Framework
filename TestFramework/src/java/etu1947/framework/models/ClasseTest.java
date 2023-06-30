@@ -6,6 +6,7 @@ package etu1947.framework.models;
 
 import etu1947.framework.annotations.ModelTable;
 import etu1947.framework.annotations.Url;
+import etu1947.framework.annotations.Auth;
 import etu1947.framework.utile.ModelView;
 
 /**
@@ -16,6 +17,7 @@ import etu1947.framework.utile.ModelView;
 public class ClasseTest {
     
     @Url(value = "getThis")
+    @Auth( Profil = "")
     public ModelView getMot(){
         ModelView model = new ModelView("test.jsp");
         String[] listes = new String[3];
@@ -27,8 +29,15 @@ public class ClasseTest {
     }
 
     @Url(value = "insertImage")
+    @Auth( Profil = "admin")
     public ModelView insertImage(){
         ModelView model = new ModelView("imageTest.jsp");
+        return model;
+    }
+
+    @Url(value = "showLogin")
+    public ModelView showLogin(){
+        ModelView model = new ModelView("loginPage.jsp");
         return model;
     }
 }

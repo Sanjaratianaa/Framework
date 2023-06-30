@@ -8,14 +8,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.annotation.*;
-
+import etu1947.framework.annotations.Auth;
 import etu1947.framework.mapping.Mapping;
 import etu1947.framework.utile.Fichiers;
 import etu1947.framework.utile.FonctionsUtile;
 import etu1947.framework.utile.ModelView;
 import jakarta.servlet.http.Part;
-import java.io.File;
-import java.io.InputStream;
+import java.io.File; 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,6 +25,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -40,6 +41,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 
 public class FrontServlet extends HttpServlet {
     HashMap<String,Mapping> urls = new HashMap<>();
+    HashMap<String,Object> singletons = new HashMap<>();
     ArrayList<Class<?>> classes; 
 
     // setters
@@ -61,18 +63,14 @@ public class FrontServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         String packageName = "etu1947.framework.models";
-        try{
-            ArrayList<Class<?>> classes =  FonctionsUtile.getClasses(packageName, this.getUrls());
+        try {
+            ArrayList<Class<?>> classes = FonctionsUtile.getClasses(packageName, this.getUrls(), this.singletons);
             this.setClasses(classes);
-            System.out.println(classes);
-            System.out.println(this.getUrls());
-
-
-        }catch(IOException | ClassNotFoundException | URISyntaxException e){
+        } catch(IOException | ClassNotFoundException | URISyntaxException e) {
             Logger.getLogger(FrontServlet.class.getName()).log(Level.SEVERE, null, e);
-        }
-        
+        }   
     }
+    
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -99,20 +97,11 @@ public class FrontServlet extends HttpServlet {
                 }
                 out.println("</ul>");
             }
-            
-            if(this.getClasses().isEmpty() == false){
-                out.println("These are the classes for sprint 3:");
-                out.println("<ul>");
-                for (Class<?> classe : this.getClasses()) {
-                    out.println("<li> this class has the url  >>  " + classe.getName() + "</li>");
-                }
-                out.println("</ul>");
-            }
 
-                String[] all = request.getRequestURI().split("/");
-                out.print("<p>"+this.getUrls().get(all[all.length-1]).getMethod()+"</p>");
+            String[] all = request.getRequestURI().split("/");
+            out.print("<p>"+this.getUrls().get(all[all.length-1]).getMethod()+"</p>");
                 
-                Dispatcher(request,response, out);
+            Dispatcher(request,response, out);
                 
             out.println("</body>");
             out.println("</html>");
@@ -137,17 +126,14 @@ public class FrontServlet extends HttpServlet {
             try {
                 Mapping mapping = this.getUrls().get(all[all.length-1]);
 
-                // out.println("<p>"+mapping.getclassName()+" et "+mapping.getMethod()+"</p>");
-
                 Class classe = Class.forName(mapping.getclassName());
-                Object o = classe.newInstance();
-                // out.println("<p> Non "+o+"</p>");
+                Object o = this.verifieInstance(classe);
+
                 Method[] methodes = o.getClass().getDeclaredMethods();
                 for(Method methode: methodes){
 
                     if(methode.getReturnType().toString().contains("ModelView") && methode.getName().equals(mapping.getMethod())){
                         System.out.println("ModelViewwww: "+methode.getName()+" and "+mapping.getMethod());
-                        // out.println("ModelViewwww: "+methode.getName()+" and "+mapping.getMethod());
 
                         insertion(o, request,out);
 
@@ -155,17 +141,45 @@ public class FrontServlet extends HttpServlet {
                         Object[] valeurs = this.prendreArgumentFonction(o,utiles,methode,request);
                         Object[] resultMethod = utiles.resultatMethode(o, methode,valeurs);
                         Class<?>[] parameterTypes = utiles.lesParameterTypes(o, methode);
-                        System.out.println("eto aki eeeee: "+parameterTypes.length);
 
-                        Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
-                        // System.out.println("eto aki eeeee: "+methodeTest.invoke(o,resultMethod));
-                        ModelView objet = (ModelView)methodeTest.invoke(o,resultMethod);
+                        try {
+
+                            Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
+                            System.out.println("bg: "+methodeTest.getAnnotation(Auth.class));
+                            System.out.println("eto aki eeeee 22: "+methodeTest+" and "+resultMethod);
+
+                            ModelView objet = (ModelView)methodeTest.invoke(o,resultMethod);
+                            PourLesSetAttributes(request, objet);
+
+                            HashMap<String, Object> hashs = objet.getSessions();
+
+                            if(!hashs.isEmpty()){
+                                for(Map.Entry mEntry: hashs.entrySet()){
+                                    (request.getSession(true)).setAttribute(mEntry.getKey().toString(),mEntry.getValue());
+                                }
+                            }
+                            
+                            if(utiles.checkIf(objet,methodeTest)){  
+                                System.out.println("whyyy");                              
+                                System.out.println("Coucouu kosa e: "+this.isAuthentifier(request, objet));
+                                if(this.isAuthentifier(request, objet) && this.getProfil(request, methodeTest)){
+                                    System.out.println("I'm authentified");
+                                    request.getRequestDispatcher(objet.getVue()).forward(request,response);
+                                    System.out.println("anaty methode:" + methodeTest.getAnnotation(Auth.class).Profil());
+                                    
+                                }else{
+                                    System.out.println("You're not authentified");
+                                }
+                            }else{
+                                System.out.println("I enter");
+                                request.getRequestDispatcher(objet.getVue()).forward(request,response);
+                            }
+
+                        } catch (Exception e) {
+                            out.println(e.getCause());
+                        }
                         
-                        PourLesSetAttributes(request, objet);
-                        // HashMap<String, Object> images = this.forImage(request, response, out);
-                        // out.println("Vue: "+objet.getVue());
                         
-                        request.getRequestDispatcher(objet.getVue()).forward(request,response);
                     }else{
                         out.println("<p>Nonnnnn tsy mety</p>");
                     }
@@ -179,10 +193,10 @@ public class FrontServlet extends HttpServlet {
 
     public void PourLesSetAttributes(HttpServletRequest request, ModelView view) throws ServletException, IOException {
         try {
-            HashMap<String, Object> hashs = view.getData();
-            for(Map.Entry mEntry: hashs.entrySet()){
-                request.setAttribute(mEntry.getKey().toString(),mEntry.getValue());
-            }
+                HashMap<String, Object> hashs = view.getData();
+                for(Map.Entry mEntry: hashs.entrySet()){
+                    request.setAttribute(mEntry.getKey().toString(),mEntry.getValue());
+                }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -208,25 +222,28 @@ public class FrontServlet extends HttpServlet {
         try {
             Field[] fields = objet.getClass().getDeclaredFields();
             Fichiers fichier = new Fichiers();
+            if(fields.length > 0){
 
-            for (int i = 0; i < fields.length; i++) {
-                System.out.println(i+" = "+fields[i].getType().getName());
-                fields[i].setAccessible(true);
-                if(fields[i].getType().getName().equals("int")){
-                    fields[i].set(objet, Integer.parseInt(request.getParameter(fields[i].getName())));
-                }else if(fields[i].getType().getName().equals("double")){
-                    fields[i].set(objet, Double.parseDouble(request.getParameter(fields[i].getName())));
-                }else if(fields[i].getType().getName().contains("Fichiers")){
-                    System.out.println("Coucouuu Layahhhhhhhh ato aaaaaa");
-                    fichier = fichier.forImage(request, fields[i].getName());
-                    fields[i].set(objet, fichier);
-                }else{
-                    fields[i].set(objet, request.getParameter(fields[i].getName()));
+                for (int i = 0; i < fields.length; i++) {
+                    System.out.println(i+" = "+fields[i].getType().getName());
+                    fields[i].setAccessible(true);
+                    if(fields[i].getType().getName().equals("int")){
+                        fields[i].set(objet, Integer.parseInt(request.getParameter(fields[i].getName())));
+                    }else if(fields[i].getType().getName().equals("double")){
+                        fields[i].set(objet, Double.parseDouble(request.getParameter(fields[i].getName())));
+                    }else if(fields[i].getType().getName().contains("Fichiers")){
+                        System.out.println("Coucouuu Layahhhhhhhh ato aaaaaa");
+                        fichier = fichier.forImage(request, fields[i].getName());
+                        fields[i].set(objet, fichier);
+                    }else{
+                        fields[i].set(objet, request.getParameter(fields[i].getName()));
+                    }
                 }
-            }
+    
+                for (int i = 0; i < fields.length; i++) {
+                    out.println(fields[i].getName()+" : "+objet.getClass().getDeclaredMethod("get"+fields[i].getName()).invoke(objet));
+                }
 
-            for (int i = 0; i < fields.length; i++) {
-                out.println(fields[i].getName()+" : "+objet.getClass().getDeclaredMethod("get"+fields[i].getName()).invoke(objet));
             }
 
         } catch (Exception e) {
@@ -241,8 +258,6 @@ public class FrontServlet extends HttpServlet {
         try {
             List<String> annotationsList = utile.lesAnnotations(objet, methodePrincipale);
 
-            Enumeration<String> allparameterServices = request.getParameterNames();
-
             for(int i=0; i<annotationsList.size(); i++){
 
                 if(annotationsList.get(i).contains("[]") == false){
@@ -251,6 +266,7 @@ public class FrontServlet extends HttpServlet {
 
                 }else if(annotationsList.get(i).contains("[]")){
                     String[] allParam = request.getParameterValues(annotationsList.get(i));
+
                     Object temp = Array.newInstance(allParam[0].getClass() , allParam.length);
 
                     for(int j = 0 ; j < allParam.length ; j++){
@@ -265,6 +281,53 @@ public class FrontServlet extends HttpServlet {
         }
         
         return objets.toArray();
+    }
+
+    public Object verifieInstance(Class classe) throws Exception{
+        Object objet = null;
+        if(this.singletons.get(classe.getName()) == null){
+            objet = classe.newInstance();
+            this.singletons.put(classe.getName(), objet);
+        }else if(this.singletons.get(classe.getName()) != null){
+            objet = this.singletons.get(classe.getName());
+            Field[] fields = objet.getClass().getDeclaredFields();
+            for (int i = 0; i < fields.length; i++) {
+                fields[i].setAccessible(true);
+                if(fields[i].getType().getName().equals("int") || fields[i].getType().getName().equals("double")){
+                    fields[i].set(objet, 0);
+                }else{
+                    fields[i].set(objet, null);
+                }
+            }
+        }
+        return objet;
+    }
+
+
+    public Boolean isAuthentifier(HttpServletRequest request, ModelView model) throws ClassNotFoundException, IOException, URISyntaxException  {
+        HttpSession session = request.getSession(true);
+
+            String value = getInitParameter("Session-Connexion");
+            System.out.println("value: "+value);
+            System.out.println(session.getAttribute(value));
+            if(session.getAttribute(value).toString().equals("true")){
+                System.out.println("okeeee c'est trueee");
+                return true;
+            }
+
+        return false;
+    }
+
+
+    public Boolean getProfil(HttpServletRequest request, Method method) throws ClassNotFoundException, IOException, URISyntaxException  {
+        HttpSession session = request.getSession(true);
+
+            String value = getInitParameter("Session-Profil");
+            if(session.getAttribute(value) != null && session.getAttribute(value).toString().equals(method.getAnnotation(Auth.class).Profil())){
+                return true;    
+            }
+
+        return false;
     }
 
 }

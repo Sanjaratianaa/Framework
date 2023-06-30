@@ -21,7 +21,7 @@
     </ul>
 
     <form method="get" action="InsertionPersonne" enctype="multipart/form-data">
-        <input type="hidden" name="idPersonne" value="0">
+        <input type="hidden" name="IdPersonne" value="0">
         <p>Nom: <input type="text" name="Nom"></p>
         <p>Prenom: <input type="text" name="Prenom"></p>
         <p>Age: <input type="text" name="Age"></p>
