@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.annotation.*;
 import etu1947.framework.annotations.Auth;
+import etu1947.framework.annotations.RestAPI;
 import etu1947.framework.mapping.Mapping;
 import etu1947.framework.utile.Fichiers;
 import etu1947.framework.utile.FonctionsUtile;
@@ -24,9 +25,13 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionContext;
 
 /**
  *
@@ -43,6 +48,7 @@ public class FrontServlet extends HttpServlet {
     HashMap<String,Mapping> urls = new HashMap<>();
     HashMap<String,Object> singletons = new HashMap<>();
     ArrayList<Class<?>> classes; 
+    FonctionsUtile utiles = new FonctionsUtile();
 
     // setters
     public void setUrls(HashMap<String,Mapping> utilitaire){
@@ -72,39 +78,56 @@ public class FrontServlet extends HttpServlet {
     }
     
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try{
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h3>URL : " + request.getRequestURL() +"</h3>");
-            out.println("<h3>URI : " + request.getRequestURI() + "</h3>");
-            out.println("<p>Info: " + request.getPathInfo() +"?"+request.getQueryString()+ "</p>");
-
-            
-            if(request.getQueryString()!= null){
-                String mot= request.getQueryString();
-                String[] mots = mot.split("&&");
-                out.println("<ul>");
-                for (String mot1 : mots) {
-                    out.println("<li>" + mot1 + "</li>");
-                }
-                out.println("</ul>");
-            }
 
             String[] all = request.getRequestURI().split("/");
-            out.print("<p>"+this.getUrls().get(all[all.length-1]).getMethod()+"</p>");
+            if(this.getUrls().containsKey(all[all.length-1]) == true){
+                Mapping mapping = this.getUrls().get(all[all.length-1]);
+
+                Object o = this.verifieInstance(Class.forName(mapping.getclassName()));
+
+                Method[] methodes = o.getClass().getDeclaredMethods();
+                for(Method methode: methodes){
+
+                    if(methode.getName().equals(mapping.getMethod())){
+
+                        insertion(o, request,out);
+
+                        Object[] resultMethod = utiles.resultatMethode(o, methode,this.prendreArgumentFonction(o,utiles,methode,request));
+                        Class<?>[] parameterTypes = utiles.lesParameterTypes(o, methode);
+
+                        Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
+
+                        Object objet = methodeTest.invoke(o,resultMethod);
+                        PourLesSetAttributes(request, objet);
+                        PourLesSetSessions(request, objet);
+
+                        if(methodeTest.isAnnotationPresent(RestAPI.class)){
+                            objet = methodeTest.invoke(o);
+                            utiles.changeObjectToJson(objet,response);
+                        }else{
+                            objet = (ModelView)methodeTest.invoke(o,resultMethod);
+                            out.println(utiles.changeDataToJson(objet,response));
+
+                            if(utiles.checkIf((ModelView)objet,methodeTest) && isAuthenticated(request, methodeTest, (ModelView)objet)){  
+
+                                System.out.println("I'm authentified");
+                                request.getRequestDispatcher(((ModelView)objet).getVue()).forward(request,response);
+                                System.out.println("anaty methode:" + methodeTest.getAnnotation(Auth.class).Profil());
+                                
+                            }else{
+                                System.out.println("I enter");
+                                request.getRequestDispatcher(((ModelView)objet).getVue()).forward(request,response);
+                            }
+
+                        }
+                    }
+                }
+            }
                 
-            Dispatcher(request,response, out);
-                
-            out.println("</body>");
-            out.println("</html>");
         }catch(Exception e){
             e.printStackTrace(out);
         }
@@ -120,101 +143,32 @@ public class FrontServlet extends HttpServlet {
         processRequest(request, response);
     }
 
-    public void Dispatcher(HttpServletRequest request,HttpServletResponse response, PrintWriter out) throws ServletException, Exception, IOException{
-        String[] all = request.getRequestURI().split("/");
-        if(this.getUrls().containsKey(all[all.length-1]) == true){
-            try {
-                Mapping mapping = this.getUrls().get(all[all.length-1]);
-
-                Class classe = Class.forName(mapping.getclassName());
-                Object o = this.verifieInstance(classe);
-
-                Method[] methodes = o.getClass().getDeclaredMethods();
-                for(Method methode: methodes){
-
-                    if(methode.getReturnType().toString().contains("ModelView") && methode.getName().equals(mapping.getMethod())){
-                        System.out.println("ModelViewwww: "+methode.getName()+" and "+mapping.getMethod());
-
-                        insertion(o, request,out);
-
-                        FonctionsUtile utiles = new FonctionsUtile();
-                        Object[] valeurs = this.prendreArgumentFonction(o,utiles,methode,request);
-                        Object[] resultMethod = utiles.resultatMethode(o, methode,valeurs);
-                        Class<?>[] parameterTypes = utiles.lesParameterTypes(o, methode);
-
-                        try {
-
-                            Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
-                            System.out.println("bg: "+methodeTest.getAnnotation(Auth.class));
-                            System.out.println("eto aki eeeee 22: "+methodeTest+" and "+resultMethod);
-
-                            ModelView objet = (ModelView)methodeTest.invoke(o,resultMethod);
-                            PourLesSetAttributes(request, objet);
-
-                            HashMap<String, Object> hashs = objet.getSessions();
-
-                            if(!hashs.isEmpty()){
-                                for(Map.Entry mEntry: hashs.entrySet()){
-                                    (request.getSession(true)).setAttribute(mEntry.getKey().toString(),mEntry.getValue());
-                                }
-                            }
-                            
-                            if(utiles.checkIf(objet,methodeTest)){  
-                                System.out.println("whyyy");                              
-                                System.out.println("Coucouu kosa e: "+this.isAuthentifier(request, objet));
-                                if(this.isAuthentifier(request, objet) && this.getProfil(request, methodeTest)){
-                                    System.out.println("I'm authentified");
-                                    request.getRequestDispatcher(objet.getVue()).forward(request,response);
-                                    System.out.println("anaty methode:" + methodeTest.getAnnotation(Auth.class).Profil());
-                                    
-                                }else{
-                                    System.out.println("You're not authentified");
-                                }
-                            }else{
-                                System.out.println("I enter");
-                                request.getRequestDispatcher(objet.getVue()).forward(request,response);
-                            }
-
-                        } catch (Exception e) {
-                            out.println(e.getCause());
-                        }
-                        
-                        
-                    }else{
-                        out.println("<p>Nonnnnn tsy mety</p>");
-                    }
-                }
-                
-            } catch (Exception e) {
-                throw e;
-            }    
-        }
-    }
-
-    public void PourLesSetAttributes(HttpServletRequest request, ModelView view) throws ServletException, IOException {
+    public void PourLesSetAttributes(HttpServletRequest request, Object objet) throws Exception {
         try {
-                HashMap<String, Object> hashs = view.getData();
-                for(Map.Entry mEntry: hashs.entrySet()){
-                    request.setAttribute(mEntry.getKey().toString(),mEntry.getValue());
-                }
+            Method getDataMethod = objet.getClass().getMethod("getData");
+            Object objetData = getDataMethod.invoke(objet);
+
+            if (objetData instanceof HashMap) {
+                HashMap<String, Object> hashs = (HashMap<String, Object>) objetData;
+                hashs.forEach(request::setAttribute);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new Exception("getData() not found");
         }
     }
 
-    public Vector<Boolean> PourLesFormulaires(HttpServletRequest request) throws Exception {
-        Vector<Boolean> all = new Vector<>();
-        Enumeration<String> parameterNames = request.getParameterNames();
-        while(parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            String paramValue = request.getParameter(paramName);
-            if(paramValue != null){
-                all.add(true);
-            }else{
-                all.add(false);
+    public void PourLesSetSessions(HttpServletRequest request, Object objet) throws Exception {
+        try {
+            Method getSessionMethod = objet.getClass().getMethod("getSessions");
+            Object objetSession = getSessionMethod.invoke(objet);
+
+            if (objetSession instanceof HashMap) {
+                HashMap<String, Object> hashs = (HashMap<String, Object>) objetSession;
+                hashs.forEach((key, value) -> request.getSession(true).setAttribute(key, value));
             }
+        } catch (Exception e) {
+            throw new Exception("getSessions() not found");
         }
-        return all;
     }
 
     public void insertion(Object objet, HttpServletRequest request, PrintWriter out) throws Exception {
@@ -303,32 +257,25 @@ public class FrontServlet extends HttpServlet {
         return objet;
     }
 
-
-    public Boolean isAuthentifier(HttpServletRequest request, ModelView model) throws ClassNotFoundException, IOException, URISyntaxException  {
+    public boolean isAuthenticated(HttpServletRequest request, Method method, ModelView model) {
         HttpSession session = request.getSession(true);
-
-            String value = getInitParameter("Session-Connexion");
-            System.out.println("value: "+value);
-            System.out.println(session.getAttribute(value));
-            if(session.getAttribute(value).toString().equals("true")){
-                System.out.println("okeeee c'est trueee");
+    
+        String connexionValue = getInitParameter("Session-Connexion");
+        String profilValue = getInitParameter("Session-Profil");
+    
+        Object connexionAttribute = session.getAttribute(connexionValue);
+        Object profilAttribute = session.getAttribute(profilValue);
+    
+        if (connexionAttribute != null && profilAttribute != null) {
+            System.out.println("It's true!");
+            if (connexionAttribute.toString().equals("true") && profilAttribute.toString().equals(method.getAnnotation(Auth.class).Profil())) {
                 return true;
             }
-
+        }
+    
         return false;
     }
-
-
-    public Boolean getProfil(HttpServletRequest request, Method method) throws ClassNotFoundException, IOException, URISyntaxException  {
-        HttpSession session = request.getSession(true);
-
-            String value = getInitParameter("Session-Profil");
-            if(session.getAttribute(value) != null && session.getAttribute(value).toString().equals(method.getAnnotation(Auth.class).Profil())){
-                return true;    
-            }
-
-        return false;
-    }
+    
 
 }
 
