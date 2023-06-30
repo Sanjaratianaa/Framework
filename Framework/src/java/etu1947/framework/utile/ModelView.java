@@ -11,9 +11,9 @@ public class ModelView {
     HashMap<String,Object> data = new HashMap<>();
     HashMap<String,Object> sessions = new HashMap<>();
     List<Annotation> annotations;
-    Boolean invalidateSession = false;
+    boolean invalidateSession = false;
     List<String> removeSession;
-    Boolean isJson;
+    boolean isJson = false;
 
     public void setVue(String v){
         this.vue = v;
@@ -24,8 +24,11 @@ public class ModelView {
     public void setRemoveSession(List<String> removeSession){
         this.removeSession = removeSession;
     }
-    public void setIsJson(Boolean value){
+    public void setIsJson(boolean value){
         this.isJson = value;
+    }
+    public void setInvalidateSession(boolean session){
+        this.invalidateSession = session;
     }
 
     public String getVue(){
@@ -43,8 +46,11 @@ public class ModelView {
     public List<String> getRemoveSession(){
         return this.removeSession;
     }
-    public Boolean getIsJson(){
+    public boolean getIsJson(){
         return this.isJson;
+    }
+    public boolean getInvalidateSession(){
+        return this.invalidateSession;
     }
 
     public ModelView(String vue){

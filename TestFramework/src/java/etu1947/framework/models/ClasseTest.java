@@ -5,6 +5,7 @@
 package etu1947.framework.models;
 
 import etu1947.framework.annotations.ModelTable;
+import etu1947.framework.annotations.RestAPI;
 import etu1947.framework.annotations.Url;
 import etu1947.framework.annotations.Auth;
 import etu1947.framework.utile.ModelView;
@@ -39,5 +40,25 @@ public class ClasseTest {
     public ModelView showLogin(){
         ModelView model = new ModelView("loginPage.jsp");
         return model;
+    }
+
+    @Url(value = "testJson")
+    public ModelView testJson(){
+        ModelView model = new ModelView("affichage.jsp");
+        String[] listes = new String[3];
+        listes[0] = "Poire";
+        listes[1] = "Pomme";
+        listes[2] = "Orange";
+        model.addItem("fruits", listes);
+        model.addItem("personne", "Layah");
+        model.addItem("etu", "1947");
+        model.setIsJson(true);
+        return model;
+    }
+
+    @Url(value = "testJson2")
+    @RestAPI
+    public String testJson2(){
+        return "test Json 2";
     }
 }

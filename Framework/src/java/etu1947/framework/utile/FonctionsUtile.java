@@ -7,6 +7,7 @@ package etu1947.framework.utile;
 import etu1947.framework.annotations.Url;
 import etu1947.framework.annotations.Auth;
 import etu1947.framework.annotations.ParameterNames;
+import etu1947.framework.annotations.RestAPI;
 import etu1947.framework.mapping.Mapping;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +26,9 @@ import java.util.Vector;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.google.gson.Gson;
 
 /**
  *
@@ -260,10 +264,23 @@ public class FonctionsUtile {
         return false;
     }
 
-    // public void changeDataToJson(ModelView model){
-    //     if(model.getIsJson()){
-    //         Gson gson = new Gson();
-    //         String json = gson.toJson(model.getData());
-    //     }
-    // }
+    public String changeDataToJson(Object objet,HttpServletResponse response) throws IOException{
+        PrintWriter out = response.getWriter();
+        ModelView model = (ModelView)objet;
+        String json = "";
+        if(model.getIsJson()){
+            Gson gson = new Gson();
+            json = gson.toJson(model.getData());
+            System.out.println("Json: "+json);
+        }
+        return json;
+    }
+
+    public void changeObjectToJson(Object objet,HttpServletResponse response) throws IOException{
+            PrintWriter out = response.getWriter();
+            Gson gson = new Gson();
+            String json = gson.toJson(objet);
+            System.out.println("Json Object: "+json);
+            out.println("Json Object: "+json);
+    }
 }
