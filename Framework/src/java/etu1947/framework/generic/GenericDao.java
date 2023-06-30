@@ -27,6 +27,7 @@ public class GenericDao{
             }
         }
         query += ")";
+        System.out.println(query);
         Statement stmt =  con.createStatement();
         stmt.executeUpdate(query);
     }

@@ -5,6 +5,7 @@
 package etu1947.framework.utile;
 
 import etu1947.framework.annotations.Url;
+import etu1947.framework.annotations.Auth;
 import etu1947.framework.annotations.ParameterNames;
 import etu1947.framework.mapping.Mapping;
 import java.io.File;
@@ -19,14 +20,18 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  *
  * @author layah
  */
 public class FonctionsUtile {
-    public static ArrayList<Class<?>> getClasses(String packageName, HashMap<String, Mapping> urlMapping) throws ClassNotFoundException, IOException, URISyntaxException {
+    public static ArrayList<Class<?>> getClasses(String packageName, HashMap<String, Mapping> urlMapping, HashMap<String, Object> listSingletons) throws ClassNotFoundException, IOException, URISyntaxException {
         ArrayList<Class<?>> classes = new ArrayList<>();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = packageName.replace('.', '/');
@@ -42,8 +47,10 @@ public class FonctionsUtile {
                         classes.add(Class.forName(className));
                         System.out.println(className);
                         getMethods(Class.forName(className), urlMapping);
+                        firstInsertInstance(Class.forName(className), listSingletons);
+
                     }
-                    classes.addAll(getClasses(packageName + "." + child.getName().split("\\.")[0], urlMapping));
+                    classes.addAll(getClasses(packageName + "." + child.getName().split("\\.")[0], urlMapping,listSingletons));
 //                }
             } 
         }
@@ -69,6 +76,14 @@ public class FonctionsUtile {
         }        
     }
 
+    public static void firstInsertInstance(Class<?> classe, HashMap<String, Object> singletons){
+        singletons.put(classe.getName(), null);
+    }
+
+    public Object getInstance(HashMap<String, Object> singletons, String className){
+        return singletons.get(className);
+    }
+
     public Object[] resultatMethode(Object objet, Method methodePrincipale,Object[] valeurs){
 
         System.out.println("isany valeur :"+valeurs.length);
@@ -90,6 +105,7 @@ public class FonctionsUtile {
                         for (int i = 0; i < parameterTypes.length; i++) {
 
                             arguments[i] = this.castenation(parameterTypes[i], valeurs[i]);
+                            System.out.println(arguments[i]);
 
                         }
 
@@ -101,6 +117,13 @@ public class FonctionsUtile {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        if(arguments != null){
+            for (int i = 0; i < arguments.length; i++) {
+                System.out.println("argument: "+arguments[i]);
+            }
+        }
+        
         return arguments;
     }
 
@@ -162,6 +185,7 @@ public class FonctionsUtile {
         if(classe.getName().contains("[")){
 
             String[] values = (String[])objet;
+            System.out.println("coucouuuu");
 
             // si double[]
             if(classe.getName().equals("[D")){
@@ -212,7 +236,8 @@ public class FonctionsUtile {
                 result =  Integer.parseInt(objet.toString());
             }else if(classe.getName().equals("double")){
                 result = Double.parseDouble(objet.toString());
-            }else if(classe.getName().equals("String")){
+            }else if(classe.getName().contains("String")){
+            System.out.println("coucouuuu bb");
                 result = objet.toString();
             }
 
@@ -220,4 +245,25 @@ public class FonctionsUtile {
         
         return result;
     }
+
+    public Boolean checkIf(ModelView model, Method method){
+        if(method.isAnnotationPresent(Auth.class)){
+            return true;
+        }else{
+            List<Annotation> annotations = model.getAnnotations();
+            for (Annotation annotation : annotations) {
+                if (annotation.annotationType().getCanonicalName().equals("etu1947.framework.annotations.Auth")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // public void changeDataToJson(ModelView model){
+    //     if(model.getIsJson()){
+    //         Gson gson = new Gson();
+    //         String json = gson.toJson(model.getData());
+    //     }
+    // }
 }
