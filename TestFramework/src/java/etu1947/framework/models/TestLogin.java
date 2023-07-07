@@ -40,7 +40,7 @@ public class TestLogin{
         // }else{
         ModelView model = new ModelView("affichage.jsp");
         model.addSession("isConnected", true);
-        model.addSession("profil", "");
+        model.addSession("profil", "admin");
         model.addSession("personne", "layah");
         return model;
         // }

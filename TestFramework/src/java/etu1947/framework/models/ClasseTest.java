@@ -24,7 +24,7 @@ import etu1947.framework.utile.ModelView;
 @ModelTable
 public class ClasseTest {
 
-    HashMap<String, Object> SessionsAffichage = new HashMap<String,Object>();
+    HashMap<String, Object> SessionsAffichage;
 
     public void setSessionsAffichage(HashMap<String, Object> sessions){
         this.SessionsAffichage = sessions;
@@ -96,18 +96,19 @@ public class ClasseTest {
     @Auth( Profil = "")
     public ModelView testGetSessionForMe(){
         ModelView model = new ModelView("affichage.jsp");
-        // for(Entry<String, Object> mEntry: this.getSessionsAffichage().entrySet()){
-        //     System.out.println("affichage ty: "+ mEntry.getValue());
-        // } 
+        for (String key : this.getSessionsAffichage().keySet()) {
+            Object value = this.getSessionsAffichage().get(key);
+            System.out.println(key + " : "+value);
+        }
         return model;
     }
 
-    @Url(value = "printSession.do")
-    @Auth( Profil = "")
-    public void printSession(){
-        for(Entry<String, Object> mEntry: this.getSessionsAffichage().entrySet()){
-            System.out.println("affichage ty: "+ mEntry.getValue());
-        } 
-    }
+    // @Url(value = "printSession.do")
+    // @Auth( Profil = "")
+    // public void printSession(){
+    //     for(Entry<String, Object> mEntry: this.getSessionsAffichage().entrySet()){
+    //         System.out.println("affichage ty: "+ mEntry.getValue());
+    //     } 
+    // }
 
 }
