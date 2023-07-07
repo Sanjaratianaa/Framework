@@ -35,7 +35,7 @@ public class Image{
 
     }
 
-    @Url(value = "getImage")
+    @Url(value = "getImage.do")
     public ModelView affichageImage() {
         ModelView model = new ModelView("affichageTest.jsp");
         Vector<Object> datas = new Vector<>();

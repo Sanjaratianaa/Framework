@@ -33,7 +33,7 @@
         </ul>
     <% } %>
 
-    <p><a href="http://localhost:8080/YourFramework/getThis">Retour</a></p>
+    <p><a href="http://localhost:8080/YourFramework/getThis.do">Retour</a></p>
 
 </body>
 </html>

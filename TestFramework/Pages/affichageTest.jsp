@@ -18,7 +18,7 @@
     <h3>Pour les images: </h3>
     <p>Nom Image: <% out.println(fichier.getNomFichier()); %></p>
 
-    <p><a href="http://localhost:8080/YourFramework/getThis">Retour</a></p>
+    <p><a href="http://localhost:8080/YourFramework/getThis.do">Retour</a></p>
 
 </body>
 </html>

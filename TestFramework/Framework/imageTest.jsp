@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <form method="post" action="getImage" enctype="multipart/form-data">
+    <form method="post" action="getImage.do" enctype="multipart/form-data">
         <p>Choisis une image:</p>
         <p>Image: <input type="file" name="Fichier"></p>
         <input type="submit" value="valider">
