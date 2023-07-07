@@ -1,5 +1,7 @@
 <%@page import="etu1947.framework.utile.Fichiers"%>
 <%@page import="java.util.Vector"%>
+<%@page import="java.nio.charset.Charset"%>
+<%@page import="java.nio.charset.StandardCharsets"%>
 
 <%
     Vector<Object> all = (Vector<Object>)request.getAttribute("images");
@@ -17,6 +19,11 @@
 <body>
     <h3>Pour les images: </h3>
     <p>Nom Image: <% out.println(fichier.getNomFichier()); %></p>
+    <% 
+        byte[] byteArray = fichier.getBytesFichier();
+        String text = new String(byteArray, StandardCharsets.UTF_8);
+    %>
+    <p><% out.println(text); %></p>
 
     <p><a href="http://localhost:8080/YourFramework/getThis.do">Retour</a></p>
 
