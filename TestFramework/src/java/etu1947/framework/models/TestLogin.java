@@ -21,7 +21,7 @@ import etu1947.framework.utile.ModelView;
 @ModelTable
 public class TestLogin{
 
-    @Url(value = "checkLogin")
+    @Url(value = "checkLogin.do")
     public ModelView checkLogin(@ParameterNames({"nom","mdp"}) String nom,String mdp){
         // ClasseTest test = new ClasseTest();
         // System.out.println("mot de passe: "+mdp);
@@ -41,6 +41,7 @@ public class TestLogin{
         ModelView model = new ModelView("affichage.jsp");
         model.addSession("isConnected", true);
         model.addSession("profil", "");
+        model.addSession("personne", "layah");
         return model;
         // }
     }

@@ -56,7 +56,7 @@ public class Personne{
 
     }
 
-    @Url(value="InsertionPersonne")
+    @Url(value="InsertionPersonne.do")
     public ModelView Insertion(@ParameterNames({"un","deux","numbers[]"}) double un,double deux, int[] numbers){
         ModelView model = new ModelView("test1.jsp");
         Vector<String> datas = new Vector<>();
@@ -83,7 +83,7 @@ public class Personne{
         return model;
     }
 
-    @Url(value = "getImage")
+    @Url(value = "getImage.do")
     public ModelView affichageImage() {
         ModelView model = new ModelView("affichageTest.jsp");
         return model;

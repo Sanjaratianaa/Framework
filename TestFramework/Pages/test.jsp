@@ -20,7 +20,7 @@
         <% } %>
     </ul>
 
-    <form method="get" action="InsertionPersonne" enctype="multipart/form-data">
+    <form method="get" action="InsertionPersonne.do" enctype="multipart/form-data">
         <input type="hidden" name="IdPersonne" value="0">
         <p>Nom: <input type="text" name="Nom"></p>
         <p>Prenom: <input type="text" name="Prenom"></p>

@@ -15,13 +15,13 @@
     <p>Tonga zaaaaaa</p>
     <p>Les listes des fruits: </p>
     <ul>
-        <% //for(int i=0; i<listes.length; i++) {%>
-            <li><% //out.println(listes[i]); %></li>
-        <% //} %>
+        <% for(int i=0; i<listes.length; i++) {%>
+            <li><% out.println(listes[i]); %></li>
+        <% } %>
     </ul>
 
-    <form method="get" action="InsertionPersonne" enctype="multipart/form-data">
-        <input type="hidden" name="idPersonne" value="0">
+    <form method="get" action="InsertionPersonne.do" enctype="multipart/form-data">
+        <input type="hidden" name="IdPersonne" value="0">
         <p>Nom: <input type="text" name="Nom"></p>
         <p>Prenom: <input type="text" name="Prenom"></p>
         <p>Age: <input type="text" name="Age"></p>
@@ -37,7 +37,7 @@
         
     </form>
 
-    <p><a href="http://localhost:8080/YourFramework/insertImage">Inserer une image</a></p>
+    <p><a href="http://localhost:8081/YourFramework/insertImage">Inserer une image</a></p>
 
 </body>
 </html>
