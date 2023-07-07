@@ -2,6 +2,7 @@
 var=$(pwd)
 tomcat=$var/Documents/Install/apache-tomcat-10.0.27/
 frameworkPlace=$var/Documents/Semestre_4/Mr_Naina/Framework-main/Framework/
+tomcatBin=/home/layah/Documents/Install/apache-tomcat-10.0.27/bin/
 
 #WhereIs your framework
 yourFramework=$var/Documents/Semestre_4/Mr_Naina/Framework-main/TestFramework
@@ -23,6 +24,11 @@ else
     cd -- "$frameworkPlace"
 fi
 
+cd -- "$frameworkPlace/lib"
+cp postgres.jar "$yourFramework/WEB-INF/lib"
+cp gson.jar "$yourFramework/WEB-INF/lib"
+
+
 cd -- "$frameworkPlace/classes"
 jar -cf build.jar . && cp build.jar "$yourFramework/WEB-INF/lib"
 cd -- "$yourFramework"
@@ -39,9 +45,12 @@ cd -- "$yourFramework"
 mkdir -p Framework
 cp -r WEB-INF Framework
 cp Pages/* Framework
+cp -r Pages/assets Framework/assets
 
 cd Framework
 
 jar -cf YourFramework.war . && cp YourFramework.war "$tomcat/webapps"
 
-
+cd -- "$tomcatBin"
+./catalina.sh stop
+./catalina.sh start
