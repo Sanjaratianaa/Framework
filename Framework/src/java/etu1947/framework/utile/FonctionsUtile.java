@@ -88,7 +88,7 @@ public class FonctionsUtile {
         return singletons.get(className);
     }
 
-    public Object[] resultatMethode(Object objet, Method methodePrincipale,Object[] valeurs){
+    public Object[] resultatMethode(Object objet, Method methodePrincipale,Object[] valeurs, PrintWriter out){
 
         System.out.println("isany valeur :"+valeurs.length);
 
@@ -97,10 +97,12 @@ public class FonctionsUtile {
             Method[] methods = objet.getClass().getDeclaredMethods();
 
             for (Method method : methods) {
-
-                if(method.getName().equals(methodePrincipale.getName())){
+                out.println(">> Methode >>");
+                if(method.getName().equals(methodePrincipale.getName()) && !method.getName().contains("ession")){
+                    out.println(">> Methode Petit>>");
 
                     Class<?>[] parameterTypes = method.getParameterTypes();
+                    out.println("param: "+parameterTypes.length);
 
                     if (parameterTypes.length > 0) {
                         arguments = new Object[parameterTypes.length];
