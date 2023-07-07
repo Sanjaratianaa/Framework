@@ -45,13 +45,7 @@ public class Fichiers {
             Part filePart = request.getPart(nomImage);
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
             InputStream fileStream = filePart.getInputStream();
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            byte[] buffy = new byte[2000];
-            int i = 0;
-
-            while((i = fileStream.read(buffy)) != -1){
-                output.write(buffy, 0, i);
-            }
+            byte[] buffy = fileStream.readAllBytes();
 
             fichier.setNomFichier(fileName);
             fichier.setBytesFichier(buffy);

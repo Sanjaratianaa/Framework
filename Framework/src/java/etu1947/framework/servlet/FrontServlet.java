@@ -98,25 +98,28 @@ public class FrontServlet extends HttpServlet {
 
                         insertion(o, request,out);
 
-                        Object[] resultMethod = utiles.resultatMethode(o, methode,this.prendreArgumentFonction(o,utiles,methode,request));
+                        Object[] resultMethod = utiles.resultatMethode(o, methode,this.prendreArgumentFonction(o,utiles,methode,request),out);
                         Class<?>[] parameterTypes = utiles.lesParameterTypes(o, methode);
 
                         Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
 
-                        System.out.println("methode: "+methodeTest.getName());
-                        System.out.println(methodeTest.invoke(o,resultMethod));
-                        Object objet = methodeTest.invoke(o,resultMethod);
-                        PourLesSetAttributes(request, objet);
-                        PourLesSetSessions(request, objet);
-                        removeAllSessions(request, objet);
+                        out.println("methode: "+methodeTest.getName()+"\n");
+                        out.println();
+                        out.println();
                         GetAllSessionForUser(request,o,methodeTest);
                         System.out.println("je suuis laaaaaaaaaa");
 
                         if(methodeTest.isAnnotationPresent(RestAPI.class)){
-                            objet = methodeTest.invoke(o);
+                            Object objet = methodeTest.invoke(o);
+                            PourLesSetSessions(request, objet);
+                            removeAllSessions(request, objet);
                             utiles.changeObjectToJson(objet,response);
                         }else{
-                            objet = (ModelView)methodeTest.invoke(o,resultMethod);
+                            Object objet = (ModelView)methodeTest.invoke(o,resultMethod);
+                            PourLesSetAttributes(request, objet);
+                            PourLesSetSessions(request, objet);
+                            removeAllSessions(request, objet);
+
                             out.println(utiles.changeDataToJson(objet,response));
 
                             if(utiles.checkIf((ModelView)objet,methodeTest) && isAuthenticated(request, methodeTest, (ModelView)objet)){  
@@ -214,10 +217,11 @@ public class FrontServlet extends HttpServlet {
         try {
             System.out.println("De aonaaaaaaaa");
             HttpSession sessionContext = request.getSession(false);
-            HashMap<String, Object> sessions = new HashMap<>();
             
             System.out.println("De aonaaaaaaaa");
             if(methode.isAnnotationPresent(Session.class)){
+
+                HashMap<String, Object> sessions = new HashMap<>();
                 System.out.println("I'm hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
                 Enumeration<String> sessionIds = sessionContext.getAttributeNames();
                 while (sessionIds.hasMoreElements()) {
@@ -230,18 +234,10 @@ public class FrontServlet extends HttpServlet {
                 for (Field field : fields) {
                     System.out.println("field: "+field.getName());
                     field.setAccessible(true);
-                    if(field.getName().contains("Sessions")){
-                        System.out.println("Coucouuuuuu");
-                        field.set(objet, sessions);
-                        System.out.println(field.get(objet));
-                    }
+                    Method setter = objet.getClass().getDeclaredMethod("setSessionsAffichage", field.getType());
+                    setter.invoke(objet,sessions);
+                    break;
                 }
-            }else{
-                Annotation[] annot = methode.getDeclaringClass().getAnnotations();
-                for (int i = 0; i < annot.length; i++) {
-                    System.out.println(annot[i].annotationType());
-                }
-                System.out.println("Tsy mety eeeeeee");
             }
             
         } catch (Exception e) {
