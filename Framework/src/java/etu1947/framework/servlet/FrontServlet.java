@@ -10,12 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.annotation.*;
 import etu1947.framework.annotations.Auth;
 import etu1947.framework.annotations.RestAPI;
+import etu1947.framework.annotations.Session;
 import etu1947.framework.mapping.Mapping;
 import etu1947.framework.utile.Fichiers;
 import etu1947.framework.utile.FonctionsUtile;
 import etu1947.framework.utile.ModelView;
 import jakarta.servlet.http.Part;
-import java.io.File; 
+import java.io.File;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -101,9 +103,14 @@ public class FrontServlet extends HttpServlet {
 
                         Method methodeTest = o.getClass().getDeclaredMethod(mapping.getMethod(),parameterTypes);
 
+                        System.out.println("methode: "+methodeTest.getName());
+                        System.out.println(methodeTest.invoke(o,resultMethod));
                         Object objet = methodeTest.invoke(o,resultMethod);
                         PourLesSetAttributes(request, objet);
                         PourLesSetSessions(request, objet);
+                        removeAllSessions(request, objet);
+                        GetAllSessionForUser(request,o,methodeTest);
+                        System.out.println("je suuis laaaaaaaaaa");
 
                         if(methodeTest.isAnnotationPresent(RestAPI.class)){
                             objet = methodeTest.invoke(o);
@@ -118,7 +125,7 @@ public class FrontServlet extends HttpServlet {
                                 request.getRequestDispatcher(((ModelView)objet).getVue()).forward(request,response);
                                 System.out.println("anaty methode:" + methodeTest.getAnnotation(Auth.class).Profil());
                                 
-                            }else{
+                            }else if(!utiles.checkIf((ModelView)objet,methodeTest)){
                                 System.out.println("I enter");
                                 request.getRequestDispatcher(((ModelView)objet).getVue()).forward(request,response);
                             }
@@ -156,6 +163,38 @@ public class FrontServlet extends HttpServlet {
             throw new Exception("getData() not found");
         }
     }
+    
+    public void removeAllSessions(HttpServletRequest request, Object objet) throws Exception {
+        try {
+            HttpSession sessionContext = request.getSession(false);
+
+            Method getInvalidateSession = objet.getClass().getMethod("getInvalidateSession");
+            boolean invalidateSession = (boolean) getInvalidateSession.invoke(objet);
+
+            Method getremoveSession = objet.getClass().getMethod("getRemoveSession");
+            Object objetRemove = getremoveSession.invoke(objet);
+    
+            if (invalidateSession) {
+                System.out.println("I enter heree 'cause i need to remove all");
+                if (sessionContext != null) {
+                    Enumeration<String> sessionIds = sessionContext.getAttributeNames();
+                    while (sessionIds.hasMoreElements()) {
+                        String sessionId = sessionIds.nextElement();
+                        System.out.println(sessionId);
+                        sessionContext.removeAttribute(sessionId);
+                    }
+                }
+            }else if((objetRemove instanceof List) && !((List<String>) objetRemove).isEmpty()){
+                List<String> removableObject = (List<String>)objetRemove;
+                for (String removable : removableObject) {
+                    sessionContext.removeAttribute(removable);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new Exception("InvalidateSession is false babyy!");
+        }
+    }    
 
     public void PourLesSetSessions(HttpServletRequest request, Object objet) throws Exception {
         try {
@@ -168,6 +207,45 @@ public class FrontServlet extends HttpServlet {
             }
         } catch (Exception e) {
             throw new Exception("getSessions() not found");
+        }
+    }
+
+    public void GetAllSessionForUser(HttpServletRequest request, Object objet, Method methode) throws Exception {
+        try {
+            System.out.println("De aonaaaaaaaa");
+            HttpSession sessionContext = request.getSession(false);
+            HashMap<String, Object> sessions = new HashMap<>();
+            
+            System.out.println("De aonaaaaaaaa");
+            if(methode.isAnnotationPresent(Session.class)){
+                System.out.println("I'm hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+                Enumeration<String> sessionIds = sessionContext.getAttributeNames();
+                while (sessionIds.hasMoreElements()) {
+                    String sessionId = sessionIds.nextElement();
+                    System.out.println(sessionId);
+                    sessions.put(sessionId, sessionContext.getAttribute(sessionId));
+                }
+
+                Field[] fields = objet.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    System.out.println("field: "+field.getName());
+                    field.setAccessible(true);
+                    if(field.getName().contains("Sessions")){
+                        System.out.println("Coucouuuuuu");
+                        field.set(objet, sessions);
+                        System.out.println(field.get(objet));
+                    }
+                }
+            }else{
+                Annotation[] annot = methode.getDeclaringClass().getAnnotations();
+                for (int i = 0; i < annot.length; i++) {
+                    System.out.println(annot[i].annotationType());
+                }
+                System.out.println("Tsy mety eeeeeee");
+            }
+            
+        } catch (Exception e) {
+            throw new Exception("Ohhh, an error is present when you try to get all the session for the user!\n");
         }
     }
 
@@ -263,8 +341,13 @@ public class FrontServlet extends HttpServlet {
         String connexionValue = getInitParameter("Session-Connexion");
         String profilValue = getInitParameter("Session-Profil");
     
+        
+
         Object connexionAttribute = session.getAttribute(connexionValue);
         Object profilAttribute = session.getAttribute(profilValue);
+
+        System.out.println("connexion: "+connexionAttribute);
+        System.out.println("profil: "+profilAttribute);
     
         if (connexionAttribute != null && profilAttribute != null) {
             System.out.println("It's true!");
